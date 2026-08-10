@@ -1,6 +1,6 @@
 {
-  "name": "Darbs Healthcare AI Assistant",
-  "description": "Darbs - Your simple, clean, and intelligent Healthcare AI Assistant. Offers healthcare insights, wellness guidance, and medical terminology clarification.",
-  "requestFramePermissions": ["microphone"],
+  "name": "Darbs AI",
+  "description": "Darbs AI - Simple, clean, and intelligent Healthcare AI Assistant. Provides healthcare insights, symptom preparation advice, wellness guidance, and medical term clarification.",
+  "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

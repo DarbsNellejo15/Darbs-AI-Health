@@ -6,11 +6,8 @@ import {
   User,
   Copy,
   Check,
-  Volume2,
-  VolumeX,
   ExternalLink,
   Sparkles,
-  RefreshCw,
   AlertCircle,
 } from "lucide-react";
 import { ChatMessage as ChatMessageType, AppSettings } from "../types";
@@ -18,17 +15,10 @@ import { ChatMessage as ChatMessageType, AppSettings } from "../types";
 interface ChatMessageProps {
   message: ChatMessageType;
   settings: AppSettings;
-  onPlaySpeech: (text: string, messageId: string) => void;
-  isAudioPlaying: boolean;
-  onStopSpeech: () => void;
 }
 
 export const ChatMessageItem: React.FC<ChatMessageProps> = ({
   message,
-  settings,
-  onPlaySpeech,
-  isAudioPlaying,
-  onStopSpeech,
 }) => {
   const [copied, setCopied] = useState(false);
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
@@ -68,7 +58,7 @@ export const ChatMessageItem: React.FC<ChatMessageProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-xs text-slate-900 dark:text-white">
-              {isUser ? "You" : "Darbs Health AI"}
+              {isUser ? "You" : "Darbs AI"}
             </span>
             <span className="text-[11px] text-slate-400">
               {message.timestamp}
@@ -77,28 +67,6 @@ export const ChatMessageItem: React.FC<ChatMessageProps> = ({
 
           {!isUser && (
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {/* Voice playback button */}
-              <button
-                onClick={() => {
-                  if (isAudioPlaying) {
-                    onStopSpeech();
-                  } else {
-                    onPlaySpeech(message.content, message.id);
-                  }
-                }}
-                disabled={message.isAudioLoading}
-                className="flex items-center gap-1 rounded-md p-1.5 text-xs text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
-                title={isAudioPlaying ? "Stop Speech" : "Read Aloud with Voice"}
-              >
-                {message.isAudioLoading ? (
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin text-blue-500" />
-                ) : isAudioPlaying ? (
-                  <VolumeX className="h-3.5 w-3.5 text-red-500" />
-                ) : (
-                  <Volume2 className="h-3.5 w-3.5" />
-                )}
-              </button>
-
               {/* Copy Message */}
               <button
                 onClick={handleCopyMessage}
@@ -114,21 +82,6 @@ export const ChatMessageItem: React.FC<ChatMessageProps> = ({
             </div>
           )}
         </div>
-
-        {/* Generated Image preview if present */}
-        {message.imageUrl && (
-          <div className="my-2 max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-md dark:border-slate-800 dark:bg-slate-950">
-            <img
-              src={message.imageUrl}
-              alt="Generated Content"
-              className="w-full object-cover max-h-96"
-            />
-            <div className="p-2 text-center text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              Generated with Gemini Image AI
-            </div>
-          </div>
-        )}
 
         {/* Message Error Warning */}
         {message.isError && (
@@ -211,10 +164,10 @@ export const ChatMessageItem: React.FC<ChatMessageProps> = ({
 
         {/* Web Search Sources list if available */}
         {message.sources && message.sources.length > 0 && (
-          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/50">
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-              <Sparkles className="h-3.5 w-3.5 text-blue-500" />
-              <span>Grounding Web Sources ({message.sources.length})</span>
+          <div className="mt-3 rounded-xl border border-teal-100 bg-teal-50/50 p-3 dark:border-slate-800 dark:bg-slate-950/50">
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-teal-800 dark:text-teal-300">
+              <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Medical Sources & Grounding Links ({message.sources.length})</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {message.sources.map((src, i) => (
@@ -223,7 +176,7 @@ export const ChatMessageItem: React.FC<ChatMessageProps> = ({
                   href={src.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-blue-600 hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:text-blue-400 dark:hover:border-slate-700 transition-colors"
+                  className="flex items-center gap-1 rounded-lg border border-teal-200 bg-white px-2.5 py-1 text-xs text-teal-700 hover:border-teal-400 dark:border-slate-800 dark:bg-slate-900 dark:text-teal-300 dark:hover:border-slate-700 transition-colors"
                 >
                   <span className="truncate max-w-[180px]">{src.title}</span>
                   <ExternalLink className="h-3 w-3 shrink-0" />
@@ -236,3 +189,4 @@ export const ChatMessageItem: React.FC<ChatMessageProps> = ({
     </div>
   );
 };
+

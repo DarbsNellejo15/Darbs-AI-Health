@@ -2,17 +2,15 @@ import React, { useState } from "react";
 import {
   HeartPulse,
   Plus,
-  MessageSquare,
   Trash2,
   Search,
   X,
   Globe,
   Settings,
   FileJson,
-  ShieldCheck,
   Stethoscope,
 } from "lucide-react";
-import { ActiveTab, AppSettings, ChatSession } from "../types";
+import { AppSettings, ChatSession } from "../types";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,8 +21,6 @@ interface SidebarProps {
   onNewChat: () => void;
   onDeleteSession: (sessionId: string) => void;
   onClearAllSessions: () => void;
-  activeTab: ActiveTab;
-  setActiveTab: (tab: ActiveTab) => void;
   settings: AppSettings;
   onOpenSettings: () => void;
   onExportSessions: () => void;
@@ -39,8 +35,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNewChat,
   onDeleteSession,
   onClearAllSessions,
-  activeTab,
-  setActiveTab,
   settings,
   onOpenSettings,
   onExportSessions,
@@ -73,7 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <HeartPulse className="h-5 w-5" />
             </div>
             <span className="font-bold text-slate-900 dark:text-white text-sm">
-              Darbs Health Center
+              Darbs AI Health
             </span>
           </div>
           <button
@@ -84,18 +78,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Start New Consultation */}
+        {/* Start New Health Chat */}
         <div className="p-3">
           <button
             id="btn-sidebar-new-chat"
             onClick={() => {
               onNewChat();
-              setActiveTab("chat");
+              onClose();
             }}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 py-2.5 px-4 font-semibold text-white shadow-md shadow-teal-500/20 hover:bg-teal-700 transition-all text-xs"
           >
             <Plus className="h-4 w-4" />
-            New Health Consultation
+            New Health Chat
           </button>
         </div>
 
@@ -105,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search health topics..."
+              placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-lg border border-teal-100 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:placeholder-slate-500"
@@ -113,28 +107,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Consultation History List */}
+        {/* Conversation History List */}
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
           <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Consultations ({filteredSessions.length})
+            History ({filteredSessions.length})
           </div>
 
           {filteredSessions.length === 0 ? (
             <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
-              No consultations found
+              No chat history found
             </div>
           ) : (
             filteredSessions.map((session) => (
               <div
                 key={session.id}
                 className={`group flex items-center justify-between rounded-xl px-3 py-2 transition-all text-xs cursor-pointer ${
-                  session.id === currentSessionId && activeTab === "chat"
+                  session.id === currentSessionId
                     ? "bg-white text-teal-700 shadow-sm border border-teal-200 dark:border-teal-800 dark:bg-slate-800 dark:text-teal-300 font-semibold"
                     : "text-slate-600 hover:bg-teal-50/60 dark:text-slate-400 dark:hover:bg-slate-800/50"
                 }`}
                 onClick={() => {
                   onSelectSession(session.id);
-                  setActiveTab("chat");
+                  onClose();
                 }}
               >
                 <div className="flex items-center gap-2.5 truncate pr-2">
@@ -148,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onDeleteSession(session.id);
                     }}
                     className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-opacity"
-                    title="Delete Consultation"
+                    title="Delete Chat"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -163,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between rounded-lg bg-teal-50/70 p-2 text-xs text-teal-800 dark:bg-slate-800/80 dark:text-teal-200">
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-              <span>Medical Search Grounding:</span>
+              <span>Live Search:</span>
             </div>
             <span
               className={`font-semibold ${
@@ -197,7 +191,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="flex w-full items-center justify-center gap-1.5 text-xs text-red-500 hover:text-red-600 py-1"
             >
               <Trash2 className="h-3 w-3" />
-              Clear All Consultations
+              Clear All Chats
             </button>
           )}
         </div>
@@ -205,4 +199,5 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </>
   );
 };
+
 

@@ -4,7 +4,7 @@ import { Sidebar } from "./components/Sidebar";
 import { ChatMessageItem } from "./components/ChatMessage";
 import { ChatInput } from "./components/ChatInput";
 import { SettingsModal } from "./components/SettingsModal";
-import { ActiveTab, AppSettings, ChatMessage, ChatSession, PersonaType } from "./types";
+import { AppSettings, ChatMessage, ChatSession } from "./types";
 import { HeartPulse } from "lucide-react";
 
 const INITIAL_SETTINGS: AppSettings = {
@@ -19,7 +19,7 @@ const createNewSession = (title?: string): ChatSession => {
   const id = `session-${Date.now()}`;
   return {
     id,
-    title: title || "New Health Consultation",
+    title: title || "New Health Chat",
     createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     updatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     persona: "general_health",
@@ -27,7 +27,7 @@ const createNewSession = (title?: string): ChatSession => {
       {
         id: `msg-${Date.now()}`,
         role: "assistant",
-        content: `Hello! I'm **Darbs Health**, your dedicated Healthcare AI Assistant. 🩺
+        content: `Hello! I'm **Darbs AI**, your dedicated Healthcare AI Assistant. 🩺
 
 I can help answer general health questions, clarify medical terms, offer wellness guidance, and help you prepare questions for your doctor.
 
@@ -37,7 +37,7 @@ I can help answer general health questions, clarify medical terms, offer wellnes
 - 🥗 **Wellness & Nutrition Advice**: Heart-healthy diets, sleep tips, and stress management
 - 🧠 **Mental Well-being Support**: Relaxation techniques and mindfulness guidance
 
-> ⚠️ *Medical Disclaimer: Darbs Health is an AI assistant, not a medical doctor. Always consult a licensed healthcare professional for medical diagnosis, treatment, or emergencies.*`,
+> ⚠️ *Medical Disclaimer: Darbs AI is an AI assistant, not a medical doctor. Always consult a licensed healthcare professional for medical diagnosis, treatment, or emergencies.*`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       },
     ],
@@ -55,7 +55,7 @@ export default function App() {
         console.error("Failed to parse saved sessions", e);
       }
     }
-    return [createNewSession("Welcome to Darbs")];
+    return [createNewSession("Welcome to Darbs AI")];
   });
 
   const [currentSessionId, setCurrentSessionId] = useState<string>(() => {
@@ -74,13 +74,10 @@ export default function App() {
     return INITIAL_SETTINGS;
   });
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>("chat");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Sync to localStorage
@@ -102,10 +99,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (activeTab === "chat") {
-      scrollToBottom();
-    }
-  }, [currentSession?.messages, activeTab, isLoading]);
+    scrollToBottom();
+  }, [currentSession?.messages, isLoading]);
 
   // Handler: Start New Chat Session
   const handleNewChat = () => {
@@ -144,17 +139,14 @@ export default function App() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sessions, null, 2));
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `darbs_chat_export_${Date.now()}.json`);
+    downloadAnchor.setAttribute("download", `darbs_ai_chat_export_${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
   };
 
-  // Handler: Send Message to Darbs
-  const handleSendMessage = async (
-    text: string,
-    options?: { isImageGen?: boolean; imageUrl?: string }
-  ) => {
+  // Handler: Send Message to Darbs AI
+  const handleSendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
 
     const timestamp = new Date().toLocaleTimeString([], {
@@ -167,7 +159,6 @@ export default function App() {
       role: "user",
       content: text,
       timestamp,
-      imageUrl: options?.imageUrl,
     };
 
     // Update session title if first user message
@@ -193,61 +184,8 @@ export default function App() {
 
     setIsLoading(true);
 
-    // If options specify direct image generation mode
-    if (options?.isImageGen) {
-      try {
-        const response = await fetch("/api/generate-image", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: text, aspectRatio: "1:1" }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to generate image.");
-        }
-
-        const assistantMsg: ChatMessage = {
-          id: `msg-assistant-${Date.now()}`,
-          role: "assistant",
-          content: data.caption || `Here is the image created by Darbs for: "${text}"`,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          imageUrl: data.imageUrl,
-        };
-
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === currentSessionId
-              ? { ...s, messages: [...s.messages, assistantMsg] }
-              : s
-          )
-        );
-      } catch (err: any) {
-        const errorMsg: ChatMessage = {
-          id: `msg-assistant-${Date.now()}`,
-          role: "assistant",
-          content: `Failed to generate image: ${err.message}`,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          isError: true,
-        };
-
-        setSessions((prev) =>
-          prev.map((s) =>
-            s.id === currentSessionId
-              ? { ...s, messages: [...s.messages, errorMsg] }
-              : s
-          )
-        );
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
-
     // Standard Chat call to /api/chat
     try {
-      // Prepare history payloads
       const historyPayload = updatedMessages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -267,7 +205,7 @@ export default function App() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to get response from Darbs.");
+        throw new Error(data.error || "Failed to get response from Darbs AI.");
       }
 
       const assistantMsg: ChatMessage = {
@@ -306,92 +244,6 @@ export default function App() {
     }
   };
 
-  // Handler: Enhance prompt via backend API
-  const handleEnhancePrompt = async (text: string): Promise<string> => {
-    const res = await fetch("/api/smart-tool", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ toolType: "enhance_prompt", input: text }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to enhance prompt");
-    return data.result;
-  };
-
-  // Text to Speech playback handler
-  const handlePlaySpeech = async (text: string, messageId: string) => {
-    if (playingMessageId === messageId && audioRef.current) {
-      audioRef.current.pause();
-      setPlayingMessageId(null);
-      return;
-    }
-
-    // Mark message audio loading
-    setSessions((prev) =>
-      prev.map((s) =>
-        s.id === currentSessionId
-          ? {
-              ...s,
-              messages: s.messages.map((m) =>
-                m.id === messageId ? { ...m, isAudioLoading: true } : m
-              ),
-            }
-          : s
-      )
-    );
-
-    try {
-      const response = await fetch("/api/text-to-speech", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voiceName: settings.voiceName }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "TTS failed.");
-      }
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-
-      const audio = new Audio(`data:audio/mp3;base64,${data.audioBase64}`);
-      audioRef.current = audio;
-
-      audio.onended = () => {
-        setPlayingMessageId(null);
-      };
-
-      await audio.play();
-      setPlayingMessageId(messageId);
-    } catch (err: any) {
-      console.error("Audio playback error:", err);
-      alert(`Speech playback failed: ${err.message}`);
-    } finally {
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === currentSessionId
-            ? {
-                ...s,
-                messages: s.messages.map((m) =>
-                  m.id === messageId ? { ...m, isAudioLoading: false } : m
-                ),
-              }
-            : s
-        )
-      );
-    }
-  };
-
-  const handleStopSpeech = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      setPlayingMessageId(null);
-    }
-  };
-
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       {/* Sidebar navigation */}
@@ -404,8 +256,6 @@ export default function App() {
         onNewChat={handleNewChat}
         onDeleteSession={handleDeleteSession}
         onClearAllSessions={handleClearAllSessions}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
         settings={settings}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onExportSessions={handleExportSessions}
@@ -414,73 +264,61 @@ export default function App() {
       {/* Main Container */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
           onNewChat={handleNewChat}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          settings={settings}
-          onSelectPersona={(persona: PersonaType) =>
-            setSettings((prev) => ({ ...prev, persona }))
-          }
         />
 
         {/* View switching */}
-        {activeTab === "chat" && (
-          <main className="flex flex-1 flex-col overflow-hidden">
-            {/* Chat messages viewport */}
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
-              {currentSession?.messages.map((msg) => (
-                <ChatMessageItem
-                  key={msg.id}
-                  message={msg}
-                  settings={settings}
-                  onPlaySpeech={handlePlaySpeech}
-                  isAudioPlaying={playingMessageId === msg.id}
-                  onStopSpeech={handleStopSpeech}
-                />
-              ))}
+        <main className="flex flex-1 flex-col overflow-hidden">
+          {/* Chat messages viewport */}
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
+            {currentSession?.messages.map((msg) => (
+              <ChatMessageItem
+                key={msg.id}
+                message={msg}
+                settings={settings}
+              />
+            ))}
 
-              {/* Loading Indicator when Darbs is thinking */}
-              {isLoading && (
-                <div className="flex gap-4 p-4 md:px-6 bg-white dark:bg-slate-900">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 text-white animate-pulse">
-                    <HeartPulse className="h-5 w-5" />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span className="font-semibold text-slate-900 dark:text-white">
-                      Darbs Health AI
-                    </span>
-                    <span>is analyzing health request...</span>
-                    <div className="flex gap-1">
-                      <div className="h-2 w-2 rounded-full bg-teal-500 animate-bounce" />
-                      <div className="h-2 w-2 rounded-full bg-teal-500 animate-bounce [animation-delay:0.2s]" />
-                      <div className="h-2 w-2 rounded-full bg-teal-500 animate-bounce [animation-delay:0.4s]" />
-                    </div>
+            {/* Loading Indicator when Darbs AI is thinking */}
+            {isLoading && (
+              <div className="flex gap-4 p-4 md:px-6 bg-white dark:bg-slate-900">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 text-white animate-pulse">
+                  <HeartPulse className="h-5 w-5" />
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    Darbs AI
+                  </span>
+                  <span>is evaluating health question...</span>
+                  <div className="flex gap-1">
+                    <div className="h-2 w-2 rounded-full bg-teal-500 animate-bounce" />
+                    <div className="h-2 w-2 rounded-full bg-teal-500 animate-bounce [animation-delay:0.2s]" />
+                    <div className="h-2 w-2 rounded-full bg-teal-500 animate-bounce [animation-delay:0.4s]" />
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              <div ref={messagesEndRef} />
-            </div>
+            <div ref={messagesEndRef} />
+          </div>
 
-            {/* Input Footer */}
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-              settings={settings}
-              onToggleWebSearch={() =>
-                setSettings((prev) => ({
-                  ...prev,
-                  enableWebSearch: !prev.enableWebSearch,
-                }))
-              }
-              onSelectPrompt={(p) => handleSendMessage(p)}
-              showStarterChips={currentSession?.messages.length <= 1}
-              onEnhancePrompt={handleEnhancePrompt}
-            />
-          </main>
-        )}
+          {/* Input Footer */}
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            settings={settings}
+            onToggleWebSearch={() =>
+              setSettings((prev) => ({
+                ...prev,
+                enableWebSearch: !prev.enableWebSearch,
+              }))
+            }
+            onSelectPrompt={(p) => handleSendMessage(p)}
+            showStarterChips={currentSession?.messages.length <= 1}
+          />
+        </main>
       </div>
 
       {/* Settings Modal */}
@@ -495,3 +333,4 @@ export default function App() {
     </div>
   );
 }
+

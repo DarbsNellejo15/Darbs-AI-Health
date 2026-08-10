@@ -1,5 +1,5 @@
 import React from "react";
-import { X, HeartPulse, Globe, Volume2, Check } from "lucide-react";
+import { X, HeartPulse, Globe, Check } from "lucide-react";
 import { AppSettings, PersonaType } from "../types";
 import { PERSONA_CONFIGS } from "../data/prompts";
 
@@ -28,7 +28,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <HeartPulse className="h-5 w-5" />
             </div>
             <h2 className="font-bold text-base text-slate-900 dark:text-white">
-              Darbs Health AI Settings
+              Darbs AI Settings
             </h2>
           </div>
           <button
@@ -41,10 +41,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Content Body */}
         <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-          {/* Healthcare Persona Selection */}
+          {/* Healthcare Mode Selection */}
           <div className="space-y-3">
             <label className="text-xs font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300">
-              Healthcare Assistant Mode
+              Healthcare Focus Mode
             </label>
             <div className="grid grid-cols-1 gap-2">
               {(Object.keys(PERSONA_CONFIGS) as PersonaType[]).map((pKey) => {
@@ -106,32 +106,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-full accent-teal-600 h-2 bg-slate-200 rounded-lg dark:bg-slate-800 cursor-pointer"
             />
             <div className="flex justify-between text-[11px] text-slate-400">
-              <span>0.1 (Strict & Precise Medical Info)</span>
-              <span>1.0 (Conversational Wellness Advice)</span>
+              <span>0.1 (Strict Medical Jargon)</span>
+              <span>1.0 (Conversational Advice)</span>
             </div>
-          </div>
-
-          {/* Voice Speaker Choice */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-              <Volume2 className="h-4 w-4 text-teal-600" />
-              <span>Voice Narration Tone</span>
-            </label>
-            <select
-              value={settings.voiceName}
-              onChange={(e) =>
-                onUpdateSettings({
-                  voiceName: e.target.value as any,
-                })
-              }
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs font-medium text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-            >
-              <option value="Kore">Kore (Clear, Professional Female)</option>
-              <option value="Zephyr">Zephyr (Warm, Reassuring Male)</option>
-              <option value="Puck">Puck (Friendly, Clear Male)</option>
-              <option value="Fenrir">Fenrir (Calm, Authoritative Male)</option>
-              <option value="Charon">Charon (Relaxed, Gentle Male)</option>
-            </select>
           </div>
 
           {/* Web Search Grounding Toggle */}
@@ -139,10 +116,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="space-y-0.5">
               <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <Globe className="h-4 w-4 text-emerald-500" />
-                Live Medical Search Grounding
+                Live Web Grounding
               </span>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Allow Darbs to cross-check latest clinical guidelines and health updates via Google Search.
+                Cross-check latest clinical guidelines and health search data via Google Search.
               </p>
             </div>
             <button
@@ -175,4 +152,5 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     </div>
   );
 };
+
 

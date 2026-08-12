@@ -38,9 +38,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Healthcare Assistant
               </span>
             </div>
-            <p className="hidden text-[11px] text-slate-500 dark:text-slate-400 sm:block">
-              Clean, Empathetic & Intelligent Health Assistant
-            </p>
           </div>
         </div>
       </div>

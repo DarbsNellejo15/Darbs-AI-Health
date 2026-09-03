@@ -1,9 +1,9 @@
 export type PersonaType =
-  | "general_health"
-  | "symptom_guide"
-  | "medical_explainer"
-  | "wellness_coach"
-  | "mental_health";
+  | "hardware_laptop"
+  | "windows_bsod"
+  | "performance_storage"
+  | "network_wifi"
+  | "driver_software";
 
 export interface WebSource {
   title: string;
@@ -35,8 +35,11 @@ export interface AppSettings {
   persona: PersonaType;
   temperature: number;
   enableWebSearch: boolean;
+  speechEnabled: boolean;
   voiceName: "Kore" | "Puck" | "Fenrir" | "Zephyr" | "Charon";
-  autoReadResponses: boolean;
+  speechRate: number;
+  theme: "dark" | "light";
 }
 
 export type ActiveTab = "chat";
+

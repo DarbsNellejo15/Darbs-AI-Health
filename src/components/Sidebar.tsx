@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import {
-  HeartPulse,
+  Laptop,
   Plus,
   Trash2,
   Search,
   X,
   Globe,
-  Settings,
-  FileJson,
-  Stethoscope,
+  Terminal,
+  LogOut,
 } from "lucide-react";
 import { AppSettings, ChatSession } from "../types";
 
@@ -22,8 +21,7 @@ interface SidebarProps {
   onDeleteSession: (sessionId: string) => void;
   onClearAllSessions: () => void;
   settings: AppSettings;
-  onOpenSettings: () => void;
-  onExportSessions: () => void;
+  onOpenExitModal: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -36,8 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeleteSession,
   onClearAllSessions,
   settings,
-  onOpenSettings,
-  onExportSessions,
+  onOpenExitModal,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -50,35 +47,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile overlay background */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-teal-100 bg-slate-50 transition-transform duration-300 dark:border-teal-900/30 dark:bg-slate-900 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-slate-800 bg-[#070e1b] transition-transform duration-300 text-slate-100 lg:static lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Sidebar Header */}
-        <div className="flex h-16 items-center justify-between border-b border-teal-100 px-4 dark:border-teal-900/30">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white shadow-sm">
-              <HeartPulse className="h-5 w-5" />
+        <div className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-sm">
+              <Laptop className="h-4 w-4" />
             </div>
-            <span className="font-bold text-slate-900 dark:text-white text-sm">
-              Darbs AI Health
-            </span>
+            <div>
+              <span className="font-extrabold text-white text-sm tracking-wide">
+                DARBS
+              </span>
+              <p className="text-[10px] text-cyan-400 font-medium">
+                Diagnostics & Repair
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 lg:hidden"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Start New Health Chat */}
+        {/* Start New Diagnostic Chat */}
         <div className="p-3">
           <button
             id="btn-sidebar-new-chat"
@@ -86,10 +88,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onNewChat();
               onClose();
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 py-2.5 px-4 font-semibold text-white shadow-md shadow-teal-500/20 hover:bg-teal-700 transition-all text-xs"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 py-2.5 px-4 font-semibold text-white shadow-md shadow-cyan-500/20 hover:from-cyan-500 hover:to-blue-500 transition-all text-xs"
           >
             <Plus className="h-4 w-4" />
-            New Health Chat
+            New Diagnostic Chat
           </button>
         </div>
 
@@ -99,23 +101,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Search conversations..."
+              placeholder="Search diagnostic logs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-teal-100 bg-white py-1.5 pl-8 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:placeholder-slate-500"
+              className="w-full rounded-lg border border-slate-800 bg-slate-900/90 py-1.5 pl-8 pr-3 text-xs text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Conversation History List */}
+        {/* Diagnostic History List */}
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
-          <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            History ({filteredSessions.length})
+          <div className="flex items-center justify-between px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <span>Diagnostic History ({filteredSessions.length})</span>
           </div>
 
           {filteredSessions.length === 0 ? (
-            <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
-              No chat history found
+            <div className="p-4 text-center text-xs text-slate-500">
+              No diagnostic logs found
             </div>
           ) : (
             filteredSessions.map((session) => (
@@ -123,8 +125,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={session.id}
                 className={`group flex items-center justify-between rounded-xl px-3 py-2 transition-all text-xs cursor-pointer ${
                   session.id === currentSessionId
-                    ? "bg-white text-teal-700 shadow-sm border border-teal-200 dark:border-teal-800 dark:bg-slate-800 dark:text-teal-300 font-semibold"
-                    : "text-slate-600 hover:bg-teal-50/60 dark:text-slate-400 dark:hover:bg-slate-800/50"
+                    ? "bg-slate-800/90 text-cyan-300 shadow-sm border border-cyan-500/40 font-semibold"
+                    : "text-slate-400 hover:bg-slate-850 hover:text-slate-200 hover:bg-slate-900/60"
                 }`}
                 onClick={() => {
                   onSelectSession(session.id);
@@ -132,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
               >
                 <div className="flex items-center gap-2.5 truncate pr-2">
-                  <Stethoscope className="h-3.5 w-3.5 shrink-0 text-teal-500" />
+                  <Terminal className="h-3.5 w-3.5 shrink-0 text-cyan-400" />
                   <span className="truncate">{session.title}</span>
                 </div>
                 {sessions.length > 1 && (
@@ -141,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       e.stopPropagation();
                       onDeleteSession(session.id);
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-400 transition-opacity"
                     title="Delete Chat"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -152,52 +154,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Footer info & settings */}
-        <div className="border-t border-teal-100 p-3 space-y-2 dark:border-teal-900/30">
-          <div className="flex items-center justify-between rounded-lg bg-teal-50/70 p-2 text-xs text-teal-800 dark:bg-slate-800/80 dark:text-teal-200">
+        {/* Footer info & exit */}
+        <div className="border-t border-slate-800 p-3 space-y-2">
+          {/* Grounding Status Indicator */}
+          <div className="flex items-center justify-between rounded-lg bg-slate-900/80 p-2 text-xs text-slate-300">
             <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-              <span>Live Search:</span>
+              <Globe className="h-3.5 w-3.5 text-cyan-400" />
+              <span>Search Grounding:</span>
             </div>
             <span
               className={`font-semibold ${
-                settings.enableWebSearch ? "text-emerald-600" : "text-slate-400"
+                settings.enableWebSearch ? "text-cyan-400" : "text-slate-500"
               }`}
             >
-              {settings.enableWebSearch ? "On" : "Off"}
+              {settings.enableWebSearch ? "Enabled" : "Off"}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onExportSessions}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              <FileJson className="h-3.5 w-3.5" />
-              Export
-            </button>
-            <button
-              onClick={onOpenSettings}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              <Settings className="h-3.5 w-3.5" />
-              Settings
-            </button>
-          </div>
-
+          {/* Delete All History Button */}
           {sessions.length > 1 && (
             <button
               onClick={onClearAllSessions}
-              className="flex w-full items-center justify-center gap-1.5 text-xs text-red-500 hover:text-red-600 py-1"
+              className="flex w-full items-center justify-center gap-1.5 text-xs text-red-400 hover:text-red-300 py-1.5 hover:bg-red-950/20 rounded-lg transition-colors border border-red-900/30"
             >
-              <Trash2 className="h-3 w-3" />
-              Clear All Chats
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete All History
             </button>
           )}
+
+          {/* Dashboard Exit Button */}
+          <button
+            onClick={onOpenExitModal}
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/70 py-2 text-xs font-medium text-slate-300 hover:bg-red-950/30 hover:text-red-300 hover:border-red-800/40 transition-colors"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Exit Dashboard
+          </button>
         </div>
       </aside>
     </>
   );
 };
-
-

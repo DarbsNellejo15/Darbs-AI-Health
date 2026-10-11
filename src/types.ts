@@ -10,12 +10,24 @@ export interface WebSource {
   url: string;
 }
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  createdAt: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: string;
   imageUrl?: string;
+  audioUrl?: string;
+  audioDuration?: number;
+  isVoiceMessage?: boolean;
   sources?: WebSource[];
   isAudioLoading?: boolean;
   audioBase64?: string;
@@ -42,4 +54,3 @@ export interface AppSettings {
 }
 
 export type ActiveTab = "chat";
-

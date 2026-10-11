@@ -5,9 +5,10 @@ import { ChatMessageItem } from "./components/ChatMessage";
 import { ChatInput } from "./components/ChatInput";
 import { DeleteHistoryModal } from "./components/DeleteHistoryModal";
 import { ExitModal } from "./components/ExitModal";
-import { AppSettings, ChatMessage, ChatSession } from "./types";
+import { LoginPortal } from "./components/LoginPortal";
+import { AppSettings, ChatMessage, ChatSession, UserProfile } from "./types";
 import { speechController } from "./utils/speech";
-import { Laptop, RotateCcw } from "lucide-react";
+import { Laptop, RotateCcw, LogOut } from "lucide-react";
 
 const INITIAL_SETTINGS: AppSettings = {
   persona: "hardware_laptop",
@@ -39,7 +40,9 @@ I can help diagnose, troubleshoot, maintain, and repair problems with your PC or
 - ⚡ **Performance & Storage**: Fix slow laptop, 100% CPU/RAM/Disk, and free up drive space
 - 🚨 **BSOD & Windows Errors**: Decode error codes, fix crashes, run safe SFC/DISM repairs
 - 🌐 **Network & Connectivity**: Solve Wi-Fi dropping, DNS issues, and adapter failures
-- 🛠️ **Hardware & Thermal Diagnostics**: Address overheating, battery health, fan noise, and peripherals`,
+- 🛠️ **Hardware & Thermal Diagnostics**: Address overheating, battery health, fan noise, and peripherals
+- 📸 **Photo Inspection**: Upload photos of hardware components, burnt capacitors, damaged ports, or error screens
+- 🎙️ **Voice Messages**: Record audio describing strange noises, coil whine, or complex symptoms`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       },
     ],
@@ -47,6 +50,19 @@ I can help diagnose, troubleshoot, maintain, and repair problems with your PC or
 };
 
 export default function App() {
+  // Authentication State: Require valid registered account authentication before opening DARBS
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const saved =
+        localStorage.getItem("darbs_auth_user") ||
+        sessionStorage.getItem("darbs_auth_user");
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Failed to parse auth user", e);
+    }
+    return null;
+  });
+
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     const saved = localStorage.getItem("darbs_diagnostic_sessions");
     if (saved) {
@@ -116,6 +132,15 @@ export default function App() {
     scrollToBottom();
   }, [currentSession?.messages, isLoading]);
 
+  // Handler: User Logout
+  const handleLogout = () => {
+    speechController.stop();
+    localStorage.removeItem("darbs_auth_user");
+    sessionStorage.removeItem("darbs_auth_user");
+    setCurrentUser(null);
+    setIsExitedView(false);
+  };
+
   // Handler: Start New Diagnostic Chat Session
   const handleNewChat = () => {
     speechController.stop();
@@ -183,9 +208,13 @@ export default function App() {
     }
   };
 
-  // Handler: Send Message to DARBS
-  const handleSendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+  // Handler: Send Message to DARBS with optional Photo and Voice Note
+  const handleSendMessage = async (
+    text: string,
+    imageUrl?: string,
+    audioData?: { url: string; duration: number }
+  ) => {
+    if ((!text.trim() && !imageUrl && !audioData) || isLoading) return;
 
     speechController.stop();
 
@@ -197,8 +226,12 @@ export default function App() {
     const userMessage: ChatMessage = {
       id: `msg-user-${Date.now()}`,
       role: "user",
-      content: text,
+      content: text || (imageUrl ? "Attached diagnostic photo for inspection" : "Voice Note"),
       timestamp,
+      imageUrl,
+      audioUrl: audioData?.url,
+      audioDuration: audioData?.duration,
+      isVoiceMessage: !!audioData,
     };
 
     // Update session title if first user message
@@ -208,7 +241,8 @@ export default function App() {
       (currentSession.title.startsWith("New Diagnostic") ||
         currentSession.title.startsWith("Welcome to DARBS"))
     ) {
-      sessionTitle = text.slice(0, 32) + (text.length > 32 ? "..." : "");
+      const summaryText = text || (imageUrl ? "Photo Diagnosis" : "Voice Diagnostic");
+      sessionTitle = summaryText.slice(0, 32) + (summaryText.length > 32 ? "..." : "");
     }
 
     const updatedMessages = [...currentSession.messages, userMessage];
@@ -228,11 +262,12 @@ export default function App() {
 
     setIsLoading(true);
 
-    // Call /api/chat
+    // Call /api/chat with multimodal context (messages + attached image)
     try {
       const historyPayload = updatedMessages.map((m) => ({
         role: m.role,
         content: m.content,
+        imageUrl: m.imageUrl,
       }));
 
       const response = await fetch("/api/chat", {
@@ -276,8 +311,8 @@ export default function App() {
         )
       );
 
-      // If speech is globally enabled, automatically read the new response
-      if (settings.speechEnabled) {
+      // If speech is globally enabled or user used voice message, speak reply
+      if (settings.speechEnabled || !!audioData) {
         speechController.speak(
           data.reply,
           assistantMsgId,
@@ -290,7 +325,10 @@ export default function App() {
       const errorMsg: ChatMessage = {
         id: `msg-error-${Date.now()}`,
         role: "assistant",
-        content: `Diagnostic Error: ${error.message || "Failed to communicate with DARBS engine. Please verify your connection."}`,
+        content: `Diagnostic Error: ${
+          error.message ||
+          "Failed to communicate with DARBS engine. Please verify your connection."
+        }`,
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -310,6 +348,11 @@ export default function App() {
     }
   };
 
+  // IF NOT LOGGED IN: Render the Secure Login & Sign In Portal before opening DARBS
+  if (!currentUser) {
+    return <LoginPortal onLogin={(user) => setCurrentUser(user)} />;
+  }
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#070e1b] text-slate-100 font-sans">
       {/* Sidebar navigation */}
@@ -324,6 +367,8 @@ export default function App() {
         onClearAllSessions={() => setIsDeleteModalOpen(true)}
         settings={settings}
         onOpenExitModal={() => setIsExitModalOpen(true)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
@@ -335,14 +380,21 @@ export default function App() {
           onOpenExitModal={() => setIsExitModalOpen(true)}
           settings={settings}
           onToggleSpeech={handleToggleGlobalSpeech}
+          currentUser={currentUser}
+          onLogout={handleLogout}
         />
 
         {/* Exited Workspace Screen or Active Chat View */}
         {isExitedView ? (
           <main className="flex flex-1 flex-col items-center justify-center p-6 text-center">
             <div className="max-w-md space-y-4 rounded-3xl border border-slate-800 bg-[#0b1429] p-8 shadow-2xl">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
-                <Laptop className="h-8 w-8" />
+              <div className="mx-auto relative flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden border border-cyan-400/40 bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
+                <img
+                  src="/src/assets/images/darbs_logo_1791717510434.jpg"
+                  alt="DARBS Logo"
+                  referrerPolicy="no-referrer"
+                  className="h-full w-full object-cover"
+                />
               </div>
               <h2 className="text-xl font-bold text-white">
                 DARBS Session Closed
@@ -359,10 +411,11 @@ export default function App() {
                   <span>Resume Diagnostic Session</span>
                 </button>
                 <button
-                  onClick={handleNewChat}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 py-2.5 px-4 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition-colors"
+                  onClick={handleLogout}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-red-900/60 bg-red-950/40 py-2.5 px-4 text-xs font-semibold text-red-300 hover:bg-red-900/50 transition-colors"
                 >
-                  <span>Start Fresh Diagnostic Chat</span>
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign Out to Login Portal</span>
                 </button>
               </div>
             </div>
@@ -384,12 +437,19 @@ export default function App() {
               {/* Loading Indicator when DARBS is analyzing */}
               {isLoading && (
                 <div className="flex gap-4 p-4 md:px-6 bg-[#070e1b]">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white animate-pulse shadow-md shadow-cyan-500/20">
-                    <Laptop className="h-5 w-5" />
+                  <div className="relative flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden border border-cyan-400/40 bg-gradient-to-tr from-cyan-600 to-blue-600 text-white animate-pulse shadow-md shadow-cyan-500/20">
+                    <img
+                      src="/src/assets/images/darbs_logo_1791717510434.jpg"
+                      alt="DARBS Logo"
+                      referrerPolicy="no-referrer"
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-400">
                     <span className="font-bold text-white">DARBS</span>
-                    <span className="text-cyan-300">is analyzing hardware and diagnostic logs...</span>
+                    <span className="text-cyan-300">
+                      is analyzing hardware diagnostics & logs...
+                    </span>
                     <div className="flex gap-1">
                       <div className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce" />
                       <div className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:0.2s]" />
@@ -402,7 +462,7 @@ export default function App() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Footer */}
+            {/* Input Footer with Photo Upload & Voice Note */}
             <ChatInput
               onSendMessage={handleSendMessage}
               isLoading={isLoading}

@@ -290,11 +290,34 @@ TONE & STYLE:
         " Focus on full-spectrum laptop hardware, thermals, fans, battery health reports (powercfg /batteryreport), charging port issues, keyboard/trackpad, and system maintenance.";
     }
 
-    // Convert message history to Gemini contents format
-    const contents = messages.map((m: { role: string; content: string }) => ({
-      role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
-    }));
+    // Convert message history to Gemini contents format (supporting both text and attached photos)
+    const contents = messages.map((m: { role: string; content: string; imageUrl?: string }) => {
+      const parts: any[] = [];
+
+      // If message includes attached photo, add inlineData
+      if (m.imageUrl && typeof m.imageUrl === "string" && m.imageUrl.startsWith("data:")) {
+        const matches = m.imageUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          parts.push({
+            inlineData: {
+              mimeType: matches[1],
+              data: matches[2],
+            },
+          });
+        }
+      }
+
+      if (m.content && m.content.trim()) {
+        parts.push({ text: m.content });
+      } else if (parts.length > 0) {
+        parts.push({ text: "Please inspect and diagnose this hardware component or screen error photo in detail." });
+      }
+
+      return {
+        role: m.role === "user" ? "user" : "model",
+        parts: parts.length > 0 ? parts : [{ text: "..." }],
+      };
+    });
 
     const lastUserMessage =
       [...messages].reverse().find((m) => m.role === "user")?.content || "";

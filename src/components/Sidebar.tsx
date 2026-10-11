@@ -8,8 +8,10 @@ import {
   Globe,
   Terminal,
   LogOut,
+  User,
+  Shield,
 } from "lucide-react";
-import { AppSettings, ChatSession } from "../types";
+import { AppSettings, ChatSession, UserProfile } from "../types";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ interface SidebarProps {
   onClearAllSessions: () => void;
   settings: AppSettings;
   onOpenExitModal: () => void;
+  currentUser: UserProfile | null;
+  onLogout: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -35,6 +39,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClearAllSessions,
   settings,
   onOpenExitModal,
+  currentUser,
+  onLogout,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -60,8 +66,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sidebar Header */}
         <div className="flex h-16 items-center justify-between border-b border-slate-800 px-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-sm">
-              <Laptop className="h-4 w-4" />
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden border border-cyan-400/40 bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-sm">
+              <img
+                src="/src/assets/images/darbs_logo_1791717510434.jpg"
+                alt="DARBS Logo"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover"
+              />
             </div>
             <div>
               <span className="font-extrabold text-white text-sm tracking-wide">
@@ -79,6 +90,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {/* User Profile Card in Sidebar */}
+        {currentUser && (
+          <div className="mx-3 mt-3 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-2.5">
+            <div className="flex items-center gap-2.5 truncate">
+              <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg overflow-hidden border border-cyan-500/40 bg-slate-800 text-white font-bold text-xs shadow-sm">
+                {currentUser.avatar ? (
+                  <img
+                    src={currentUser.avatar}
+                    alt={currentUser.name}
+                    referrerPolicy="no-referrer"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src="/src/assets/images/darbs_logo_1791717510434.jpg"
+                    alt={currentUser.name}
+                    referrerPolicy="no-referrer"
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
+              <div className="truncate">
+                <div className="font-semibold text-xs text-white truncate">
+                  {currentUser.name}
+                </div>
+                <div className="text-[10px] text-cyan-400 truncate">
+                  {currentUser.role}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onLogout}
+              className="rounded-lg p-1 text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Start New Diagnostic Chat */}
         <div className="p-3">
@@ -126,7 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={`group flex items-center justify-between rounded-xl px-3 py-2 transition-all text-xs cursor-pointer ${
                   session.id === currentSessionId
                     ? "bg-slate-800/90 text-cyan-300 shadow-sm border border-cyan-500/40 font-semibold"
-                    : "text-slate-400 hover:bg-slate-850 hover:text-slate-200 hover:bg-slate-900/60"
+                    : "text-slate-400 hover:bg-slate-900/60 hover:text-slate-200"
                 }`}
                 onClick={() => {
                   onSelectSession(session.id);

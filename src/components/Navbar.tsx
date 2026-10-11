@@ -1,6 +1,16 @@
 import React from "react";
-import { Laptop, Menu, Plus, Trash2, Volume2, VolumeX, LogOut } from "lucide-react";
-import { AppSettings } from "../types";
+import {
+  Laptop,
+  Menu,
+  Plus,
+  Trash2,
+  Volume2,
+  VolumeX,
+  LogOut,
+  User,
+  Shield,
+} from "lucide-react";
+import { AppSettings, UserProfile } from "../types";
 
 interface NavbarProps {
   onNewChat: () => void;
@@ -9,6 +19,8 @@ interface NavbarProps {
   onOpenExitModal: () => void;
   settings: AppSettings;
   onToggleSpeech: () => void;
+  currentUser: UserProfile | null;
+  onLogout: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,6 +30,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenExitModal,
   settings,
   onToggleSpeech,
+  currentUser,
+  onLogout,
 }) => {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-800 bg-[#070e1b]/95 px-3 md:px-5 backdrop-blur-md text-slate-100">
@@ -32,11 +46,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Brand with Laptop icon & pulsing active status dot */}
+        {/* Brand with DARBS Image Logo & pulsing active status dot */}
         <div className="flex items-center gap-2.5">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/20">
-            <Laptop className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#070e1b] animate-pulse" />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-md shadow-cyan-500/25 overflow-hidden border border-cyan-400/40 group">
+            <img
+              src="/src/assets/images/darbs_logo_1791717510434.jpg"
+              alt="DARBS Logo"
+              referrerPolicy="no-referrer"
+              className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-300"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#070e1b] animate-pulse z-10" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -54,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Right side controls: New Chat, Delete History, Read/Speech Toggle, Exit */}
+      {/* Right side controls: New Chat, Delete History, Read/Speech Toggle, User Badge, Exit/Logout */}
       <div className="flex items-center gap-1.5 md:gap-2">
         {/* New Chat Session */}
         <button
@@ -95,25 +114,60 @@ export const Navbar: React.FC<NavbarProps> = ({
           {settings.speechEnabled ? (
             <>
               <Volume2 className="h-4 w-4 text-cyan-400 animate-pulse" />
-              <span className="hidden lg:inline text-[11px] font-medium text-cyan-300">Voice ON</span>
+              <span className="hidden lg:inline text-[11px] font-medium text-cyan-300">
+                Voice ON
+              </span>
             </>
           ) : (
             <>
               <VolumeX className="h-4 w-4 text-slate-400" />
-              <span className="hidden lg:inline text-[11px] font-medium text-slate-400">Voice OFF</span>
+              <span className="hidden lg:inline text-[11px] font-medium text-slate-400">
+                Voice OFF
+              </span>
             </>
           )}
         </button>
 
-        {/* Exit Button */}
+        {/* User Technician Profile Badge */}
+        {currentUser && (
+          <div className="hidden sm:flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-2.5 py-1 text-xs">
+            <div className="relative flex h-7 w-7 items-center justify-center rounded-lg overflow-hidden border border-cyan-500/40 bg-slate-800 text-white font-bold text-[10px] shadow-sm">
+              {currentUser.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  referrerPolicy="no-referrer"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <img
+                  src="/src/assets/images/darbs_logo_1791717510434.jpg"
+                  alt="Technician Profile"
+                  referrerPolicy="no-referrer"
+                  className="h-full w-full object-cover"
+                />
+              )}
+            </div>
+            <div className="text-left leading-tight">
+              <div className="font-semibold text-slate-200 text-[11px] truncate max-w-[100px]">
+                {currentUser.name}
+              </div>
+              <div className="text-[9px] text-cyan-400 truncate max-w-[100px]">
+                {currentUser.role}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Logout / Exit Button */}
         <button
-          id="btn-navbar-exit"
-          onClick={onOpenExitModal}
+          id="btn-navbar-logout"
+          onClick={onLogout}
           className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-red-950/40 hover:text-red-300 hover:border-red-800/50 transition-colors"
-          title="Exit DARBS Dashboard"
+          title="Sign Out to Login Portal"
         >
           <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline">Exit</span>
+          <span className="hidden sm:inline">Sign Out</span>
         </button>
       </div>
     </header>

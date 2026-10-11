@@ -71,10 +71,15 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
     setSuccessMessage(null);
     setPasswordError(false);
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanIdentifier = email.trim();
 
-    if (!cleanEmail || !cleanEmail.includes("@")) {
-      setError("Please provide a valid diagnostic technician email address.");
+    if (!cleanIdentifier) {
+      setError(isSignUp ? "Please provide a valid technician email address." : "Please enter your User name or Email.");
+      return;
+    }
+
+    if (isSignUp && !cleanIdentifier.includes("@")) {
+      setError("Please provide a valid technician email address.");
       return;
     }
 
@@ -99,7 +104,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
       }
 
       const existingAccount = accounts.find(
-        (acc) => acc.email.toLowerCase() === cleanEmail
+        (acc) => acc.email.toLowerCase() === cleanIdentifier.toLowerCase()
       );
       if (existingAccount) {
         setError("An account with this email is already registered. Please sign in instead.");
@@ -111,7 +116,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
         const newAccount: StoredAccount = {
           id: `tech-${Date.now()}`,
           name: name.trim(),
-          email: cleanEmail,
+          email: cleanIdentifier.toLowerCase(),
           password: password,
           role: "Hardware & Laptop Technician",
           createdAt: new Date().toISOString(),
@@ -137,11 +142,14 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
         }, 500);
       }, 400);
     } else {
-      // Strict Login Verification against Registered Accounts
+      // Strict Login Verification against Registered Accounts (Username or Email)
       setIsSubmitting(true);
       setTimeout(() => {
+        const cleanLower = cleanIdentifier.toLowerCase();
         const found = accounts.find(
-          (acc) => acc.email.toLowerCase() === cleanEmail
+          (acc) =>
+            acc.email.toLowerCase() === cleanLower ||
+            acc.name.toLowerCase() === cleanLower
         );
 
         if (!found) {
@@ -158,7 +166,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
           return;
         }
 
-        // Both email and password match registered account
+        // Both credentials and password match registered account
         setPasswordError(false);
         const authenticatedUser: UserProfile = {
           id: found.id,
@@ -237,7 +245,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              Sign In (Log In)
+              Log In
             </button>
             <button
               type="button"
@@ -288,31 +296,33 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
                       setName(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="e.g. Alex Chen"
                     required={isSignUp}
-                    className="w-full rounded-xl border border-slate-800 bg-slate-900/90 py-2.5 pl-10 pr-3.5 text-xs md:text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+                    className="w-full rounded-xl border border-slate-800 bg-slate-900/90 py-2.5 pl-10 pr-3.5 text-xs md:text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
                   />
                 </div>
               </div>
             )}
 
-            {/* Email Address */}
+            {/* User name / Email Address */}
             <div>
               <label className="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Email
+                {isSignUp ? "Email" : "User name"}
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                {isSignUp ? (
+                  <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                ) : (
+                  <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                )}
                 <input
-                  type="email"
+                  type={isSignUp ? "email" : "text"}
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                     if (error) setError(null);
                   }}
-                  placeholder="tech@darbs.io"
                   required
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900/90 py-2.5 pl-10 pr-3.5 text-xs md:text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+                  className="w-full rounded-xl border border-slate-800 bg-slate-900/90 py-2.5 pl-10 pr-3.5 text-xs md:text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
                 />
               </div>
             </div>
@@ -343,9 +353,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
                     if (passwordError) setPasswordError(false);
                     if (error) setError(null);
                   }}
-                  placeholder="••••••••••••"
                   required
-                  className={`w-full rounded-xl border py-2.5 pl-10 pr-10 text-xs md:text-sm text-slate-100 placeholder-slate-500 transition-all ${
+                  className={`w-full rounded-xl border py-2.5 pl-10 pr-10 text-xs md:text-sm text-slate-100 transition-all ${
                     passwordError
                       ? "border-red-500/90 bg-red-950/20 ring-1 ring-red-500/50 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50"
                       : "border-slate-800 bg-slate-900/90 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
@@ -376,9 +385,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
                       setConfirmPassword(e.target.value);
                       if (error) setError(null);
                     }}
-                    placeholder="••••••••••••"
                     required={isSignUp}
-                    className="w-full rounded-xl border border-slate-800 bg-slate-900/90 py-2.5 pl-10 pr-3.5 text-xs md:text-sm text-slate-100 placeholder-slate-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+                    className="w-full rounded-xl border border-slate-800 bg-slate-900/90 py-2.5 pl-10 pr-3.5 text-xs md:text-sm text-slate-100 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
                   />
                 </div>
               </div>
@@ -397,7 +405,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({ onLogin }) => {
                 </>
               ) : (
                 <>
-                  <span>{isSignUp ? "Register Account & Enter DARBS" : "Sign In & Open DARBS"}</span>
+                  <span>{isSignUp ? "Register Account" : "Log In"}</span>
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
